@@ -1,0 +1,41 @@
+
+
+
+| Dispositivo       | Pin | Conectar a NodeMCU |
+| ----------------- | --- | ------------------ |
+| **GYML8511**      | VIN | 3.3 V              |
+|                   | EN  | 3.3 V              |
+|                   | GND | GND                |
+|                   | OUT | A0                 |
+| **LCD I2C HW-61** | VCC | 3.3 V              |
+|                   | GND | GND                |
+|                   | SDA | D2 (GPIO4)         |
+|                   | SCL | D1 (GPIO5)         |
+
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27,16,2); // Dirección I2C HW-61
+
+const int uvPin = A0; // Sensor UV
+
+void setup() {
+  Serial.begin(115200);
+  lcd.init();
+  lcd.backlight();
+}
+
+void loop() {
+  int uvValue = analogRead(uvPin); // Lee UV 0-1023
+  Serial.print("UV: ");
+  Serial.println(uvValue);
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("UV Value:");
+  lcd.setCursor(0,1);
+  lcd.print(uvValue);
+
+  delay(500);
+}
