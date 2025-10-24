@@ -1,0 +1,59 @@
+
+Driver CH340 https://sparks.gogo.co.nz/assets/_site_/downloads/CH34x_Install_Windows_v3_4.zip
+Librería Liquid Crystal https://www.arduinolibraries.info/libraries/liquid-crystal-i2-c
+Prueba Arduino https://www.youtube.com/watch?v=Scx2PMLyhs4
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2); // usa la dirección de tu pantalla
+
+void setup() {
+  lcd.init();
+  lcd.backlight();
+
+  lcd.setCursor(0, 0);
+  lcd.print("Hola Mundo!");
+  delay(1000);
+}
+
+void loop() {
+  // Desplaza el texto 16 veces a la derecha
+  for (int i = 0; i < 16; i++) {
+    lcd.scrollDisplayRight();
+    delay(250);
+  }
+
+  // Luego lo devuelve a la izquierda
+  for (int i = 0; i < 16; i++) {
+    lcd.scrollDisplayLeft();
+    delay(250);
+  }
+}
+
+
+Prueba con ESP8266
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// Dirección I2C detectada antes: 0x27
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  // Inicia I2C en los pines D2 (SDA) y D1 (SCL)
+  Wire.begin(4, 5);   // SDA = GPIO4 (D2), SCL = GPIO5 (D1)
+
+  lcd.init();         // Inicializa la pantalla LCD
+  lcd.backlight();    // Enciende la retroiluminación
+
+  lcd.setCursor(0, 0);
+  lcd.print("Hola desde");
+  lcd.setCursor(0, 1);
+  lcd.print("ESP8266!");
+}
+
+void loop() {
+  // Animación simple de scroll
+  lcd.scrollDisplayLeft();
+  delay(300);
+}
