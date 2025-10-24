@@ -1,0 +1,49 @@
+
+Sensor UV GYML8511 ultravioleta
+
+Prueba Arduino UNO
+| Pin GYML8511 | Conectar a Arduino |
+| ------------ | ------------------ |
+| VIN          | 5V                 |
+| GND          | GND                |
+| OUT          | A0                 |
+| EN           | 5V                 |
+| 3V3          | No conectar        |
+
+
+// Pin analógico donde conectaste OUT del sensor
+const int uvPin = A0;
+int uvValue = 0;
+
+void setup() {
+  Serial.begin(9600); // Inicializa comunicación serial
+  pinMode(uvPin, INPUT); // Configura el pin como entrada
+}
+
+void loop() {
+  uvValue = analogRead(uvPin);   // Lee el valor analógico (0-1023)
+  Serial.print("Valor UV: ");
+  Serial.println(uvValue);
+  delay(500); // medio segundo de retardo
+}
+
+Prueba ESP8266
+Sensor GYML8511	ESP8266 (NodeMCU / Wemos D1)
+VIN	3.3 V
+EN	3.3 V
+GND	GND
+OUT	A0 (en NodeMCU) → pin analógico de ESP8266
+
+
+const int uvPin = A0;  // Pin analógico de la ESP8266
+
+void setup() {
+  Serial.begin(115200);
+}
+
+void loop() {
+  int uvValue = analogRead(uvPin);  // Lee valor 0-1023
+  Serial.print("Valor UV: ");
+  Serial.println(uvValue);
+  delay(500);
+}
