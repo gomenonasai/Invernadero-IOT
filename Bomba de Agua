@@ -1,0 +1,77 @@
+
+
+Video youtube conexiones: https://www.youtube.com/watch?v=Skgv3DF5qxw
+Código de prueba:
+
+// Definimos el pin donde está conectado el Relay (Señal)
+// El usuario indicó pin D4 (que corresponde al GPIO 2 en el ESP8266)
+const int PIN_RELAY = D4; 
+
+void setup() {
+  // Iniciamos el monitor serie por si necesitamos ver mensajes en la pantalla
+  Serial.begin(115200);
+  
+  // Configuramos el pin como salida
+  pinMode(PIN_RELAY, OUTPUT);
+  
+  // IMPORTANTE: Muchos módulos de Relay son de "Lógica Inversa" (Active LOW).
+  // Esto significa que se apagan con HIGH y se encienden con LOW.
+  // Iniciamos con el relay apagado (HIGH por si acaso es inversa).
+  digitalWrite(PIN_RELAY, HIGH); 
+  
+  Serial.println("--- Sistema Iniciado ---");
+}
+
+void loop() {
+  Serial.println("Regando... (Bomba ENCENDIDA)");
+  
+  // Encender el Relay (Si tu relay no se enciende, cambia LOW por HIGH)
+  digitalWrite(PIN_RELAY, LOW); 
+  
+  // Mantener encendido por 3 segundos (3000 milisegundos)
+  delay(3000); 
+  
+  Serial.println("Esperando... (Bomba APAGADA)");
+  
+  // Apagar el Relay
+  digitalWrite(PIN_RELAY, HIGH); 
+  
+  // Esperar 5 segundos antes de volver a regar
+  delay(5000); 
+}
+
+Código de prueba con agua:
+const int PIN_RELAY = D4; // Tu pin conectado al Relay
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(PIN_RELAY, OUTPUT);
+  
+  // Aseguramos que arranque APAGADO (HIGH para relays de lógica inversa)
+  digitalWrite(PIN_RELAY, HIGH); 
+
+  Serial.println("--- PREPARANDO PRUEBA DE AGUA ---");
+  Serial.println("Tienes 5 segundos para acomodar la manguera...");
+  
+  // Cuenta regresiva de seguridad
+  delay(5000); 
+
+  Serial.println("!!! ACTIVANDO BOMBA !!!");
+  
+  // Encendemos la bomba (LOW activa el relay)
+  digitalWrite(PIN_RELAY, LOW); 
+  
+  // Dejamos que corra agua por 4 segundos
+  delay(4000); 
+  
+  // Apagamos la bomba
+  digitalWrite(PIN_RELAY, HIGH); 
+  
+  Serial.println("--- PRUEBA FINALIZADA ---");
+  Serial.println("Si quieres probar de nuevo, presiona el botón RST en la placa.");
+}
+
+void loop() {
+  // Dejamos el loop vacío para que NO se vuelva a activar sola.
+  // El sistema se queda en "reposo" seguro.
+}
