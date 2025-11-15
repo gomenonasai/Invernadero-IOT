@@ -1,0 +1,125 @@
+1. Instalar Driver CH34x
+
+2. Instalar Plugin del ESP8266 en Arduino
+Archivo>Preferencias y en la casilla  “Gestor de URLs Adicionales de Tarjetas” agregar:
+http://arduino.esp8266.com/stable/package_esp8266com_index.json
+
+3. Luego vamos a Herramientas>placa: … >Gestor de Tarjetas y buscamos en la lista  “esp8266 by ESP8266 Community“, selecciona e instala
+
+4. Luego en Herramientas > Placa > selecciona nodeMCU 1.0 o sino Generic ESP8266
+
+Tutorial para ESP8266: https://naylampmechatronics.com/blog/56_usando-esp8266-con-el-ide-de-arduino.html
+
+INSTALAR LIBRERÍA LIQUIDCRYSTAL
+librería LiquidCrystal_I2C en Arduino (Ve a Programa -> Incluir Librería -> Administrar Bibliotecas -> busca "LiquidCrystal I2C" de Frank de Brabander e instálala).
+
+Conexiones (Desconecta la energía antes de armar):
+
+A. Pantalla LCD (I2C)
+
+GND -> GND (NodeMCU)
+
+VCC -> Vin (5V) (Si usas USB) o 3V3 (Si la pantalla soporta 3.3V, prueba primero con 3V3).
+
+SDA -> Pin D2 (GPIO 4)
+
+SCL -> Pin D1 (GPIO 5)
+
+B. Sensor UV (GY-ML8511)
+
+VIN/3V3 -> 3V3 (NodeMCU)
+
+GND -> GND
+
+OUT -> Pin A0 (NodeMCU)
+
+(Si tiene pin EN, conéctalo a 3V3 también)
+
+C. Sensor Humedad de Suelo
+
+VCC -> 3V3 (NodeMCU)
+
+GND -> GND
+
+DO (Digital Out) -> Pin D5 (NodeMCU)
+
+(El pin AO déjalo desconectado)
+
+D. Relay (Bomba)
+
+Igual que antes: Pin de señal -> D4
+
+Código de prueba:
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+
+// CONFIGURACIÓN DE PINES
+const int PIN_RELAY = D4;      // Bomba
+const int PIN_HUMEDAD = D5;    // Sensor Humedad (Modo Digital)
+const int PIN_UV = A0;         // Sensor UV (Modo Analógico)
+
+// CONFIGURACIÓN LCD (Dirección suele ser 0x27 o 0x3F)
+LiquidCrystal_I2C lcd(0x27, 16, 2);  
+
+void setup() {
+  Serial.begin(115200);
+  
+  // Configurar Pines
+  pinMode(PIN_RELAY, OUTPUT);
+  pinMode(PIN_HUMEDAD, INPUT);
+  
+  digitalWrite(PIN_RELAY, HIGH); // Apagar bomba al inicio
+  
+  // Iniciar LCD
+  lcd.init();
+  lcd.backlight();
+  
+  lcd.setCursor(0,0);
+  lcd.print("Iniciando...");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+  // 1. LEER SENSOR DE HUMEDAD (DIGITAL)
+  // LOW (0) suele significar HÚMEDO, HIGH (1) suele significar SECO en estos módulos
+  int estadoSuelo = digitalRead(PIN_HUMEDAD);
+  
+  // 2. LEER SENSOR UV
+  int valorUV = analogRead(PIN_UV);
+  // Convertir lectura analógica (0-1023) a voltaje aprox para referencia
+  float voltajeUV = valorUV * (3.3 / 1023.0); 
+
+  // 3. MOSTRAR EN LCD
+  lcd.setCursor(0, 0);
+  if (estadoSuelo == HIGH) {
+    lcd.print("Suelo: SECO  ");
+  } else {
+    lcd.print("Suelo: HUMEDO");
+  }
+
+  lcd.setCursor(0, 1);
+  lcd.print("UV: ");
+  lcd.print(valorUV);
+  lcd.print(" V:");
+  lcd.print(voltajeUV, 1);
+
+  // 4. LOGICA DE RIEGO
+  // Si el suelo está SECO (HIGH), activamos la bomba
+  if (estadoSuelo == HIGH) {
+    Serial.println("Suelo Seco -> REGANDO");
+    digitalWrite(PIN_RELAY, LOW); // Encender bomba
+    delay(3000); // Regar por 3 segundos
+    
+    digitalWrite(PIN_RELAY, HIGH); // Apagar bomba
+    Serial.println("Riego terminado, esperando...");
+    
+    // Esperamos un poco más para que el agua se filtre antes de volver a medir
+    delay(5000); 
+  } else {
+    // Si está húmedo, no hacemos nada
+    digitalWrite(PIN_RELAY, HIGH); 
+  }
+
+  delay(1000); // Actualizar pantalla cada segundo
+}
