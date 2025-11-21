@@ -1,0 +1,72 @@
+Pantalla led LCD 
+VCC → VIN de NodeMCU
+
+GND → GND de NodeMCU
+
+SDA → D2 de NodeMCU
+
+SCL → D5 de NodeMCU
+
+Sensor de humedad LM393
+VCC → 3V3 (protoboard fila derecha roja, da conexión con otro cable que esta conectado al 3v3 del NodeMCU)
+
+GND → GND fila azul derecha - de la protoboard
+
+AO → A0 del NodeMCU
+
+DO (desconectado)
+
+Sensor UV (ML8511)
+
+VIN → fila roja izquierda (+, del USB 5V)
+
+GND → fila azul izquierda
+
+EN → fila roja izquierda
+
+OUT → SIN CONECTAR
+
+3V3 → SIN USAR
+
+RELAY 5V
+VCC del relé → fila roja (+) de protoboard → 5V del USB pelado
+
+GND del relé → fila azul (-) de protoboard → GND del USB pelado
+
+S del relé → D1 de la NodeMCU
+
+BOMBA DE AGUA 3V - 6V
+
+Rojo de la bomba → NO del relé
+
+COM del relé → fila roja (+) → 5V del USB pelado
+
+Negro de la bomba → fila azul (-) → GND del USB pelado
+
+En la protoboard también hay una conexión de la fila izquierda azul - a la fila derecha azul - 
+
+La idea es programar un código que active la bomba de agua cuando la tierra esté seca (de la planta) y también la idea es crear un dashboard donde aparezcan los datos de los sensores que le toma a la planta, la humedad, temperatura, que ocupe el sensor de rayos uv para monitorear los valores de la intensidad ultravioleta y que active una alerta si la intensidad de los rayos UV es demasiado alta para las plantas, evitando daños y quemaduras.  Y la pantalla LCD es para ir mostrando quizás cada tanto los datos de los sensores, así lo tenemos física y también digital (en la dashboard)
+
+hostname 58e92d29aa45420982856d95def4bd97.s1.eu.hivemq.cloud
+puerto 8883
+websocket 8884
+
+const host = "wss://58e92d29aa45420982856d95def4bd97.s1.eu.hivemq:8884/mqtt";  const options = {
+      username: "piahqz",
+      password: "Miaumiau12!",
+      reconnectPeriod: 2000,
+      protocolVersion: 4, // obligatorio
+    };
+
+piahqz Miaumiau12!
+
+const char* ssid = "WiFi_Mesh-465896";
+const char* password = "Q9kGF9Y7";
+
+const char* mqtt_server = "58e92d29aa45420982856d95def4bd97.s1.eu.hivemq.cloud"; // ejemplo: xxxx.s1.eu.hivemq.cloud
+const int mqtt_port = 8883; // TLS port
+const char* mqtt_user = "piahqz";
+const char* mqtt_pass = "Miaumiau12!";
+
+
+#include <Wire.h> #include <LiquidCrystal_I2C.h> // ---- PINES ---- #define PIN_SOIL_DO D6 #define PIN_RELAY D5 #define PIN_UV A0 // ML8511 OUT // ---- CONFIGURACIONES ---- LiquidCrystal_I2C lcd(0x27, 16, 2); // Si no funciona, probar 0x3F // Tiempo de riego (ms) unsigned long pumpTime = 4000; unsigned long lastPump = 0; unsigned long minPumpInterval = 15000; // 15 seg entre riegos para evitar "bomba loca" void setup() { Serial.begin(115200); // Pines pinMode(PIN_SOIL_DO, INPUT); pinMode(PIN_RELAY, OUTPUT); digitalWrite(PIN_RELAY, LOW); // RELÉ APAGADO // LCD I2C Wire.begin(D2, D1); // SDA, SCL lcd.init(); lcd.backlight(); lcd.setCursor(0,0); lcd.print("Invernadero ON"); delay(1200); lcd.clear(); } void loop() { // ------------------------- // Lecturas de sensores // ------------------------- int uvRaw = analogRead(PIN_UV); int soilState = digitalRead(PIN_SOIL_DO); bool sueloSeco = (soilState == HIGH); // Nota: si tu módulo funciona invertido y muestra "HUMEDO" cuando está seco, // cambia a: bool sueloSeco = (soilState == LOW); // ------------------------- // Control Bomba // ------------------------- if (sueloSeco && (millis() - lastPump > minPumpInterval)) { Serial.println("Suelo SECO -> Activando bomba..."); lcd.clear(); lcd.setCursor(0,0); lcd.print("RIEGO ACTIVADO"); digitalWrite(PIN_RELAY, HIGH); // Enciende relé delay(pumpTime); digitalWrite(PIN_RELAY, LOW); // Apaga Serial.println("Bomba apagada."); lastPump = millis(); } // ------------------------- // Impresión en MONITOR SERIE // ------------------------- Serial.print("UV RAW: "); Serial.print(uvRaw); Serial.print(" | HUMEDAD: "); Serial.println(sueloSeco ? "SECO" : "HUMEDO"); // ------------------------- // Mostrar en LCD // ------------------------- lcd.setCursor(0,0); lcd.print("UV:"); lcd.print(uvRaw); lcd.print(" "); lcd.setCursor(0,1); lcd.print("Suelo:"); lcd.print(sueloSeco ? "SECO " : "HUMEDO "); delay(800); }
